@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <title>Smart Home </title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thư viện icon (Lucide) -->
+    <!-- THAY ĐỔI: Đổi từ 'lucide-react' (cho React) sang 'lucide' (cho plain JS) để sửa lỗi 'lucide is not defined' -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        /* Sử dụng font chữ Inter cho giao diện hiện đại */
+        body {
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior: none;
+        }
+        
+        /* Ẩn thanh cuộn */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Tuỳ chỉnh công tắc (toggle) - ĐÃ SỬA LỖI */
+        .toggle-checkbox {
+            /* Đây là cái chấm tròn */
+            transition: all 0.2s ease-in-out;
+        }
+        .toggle-checkbox:checked {
+            /* Di chuyển chấm tròn sang phải */
+            /* Kích thước rãnh là w-14 (3.5rem), kích thước chấm là w-7 (1.75rem) */
+            /* -> Cần di chuyển 3.5rem - 1.75rem = 1.75rem (hoặc 28px) */
+            /* Sử dụng giá trị pixel hoặc rem chính xác */
+            transform: translateX(1.75rem); 
+            background-color: white; /* Chấm tròn luôn màu trắng */
+            border-color: #3b82f6; /* Viền xanh khi active */
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            /* Đây là cái rãnh trượt, đổi nền khi active */
+            background-color: #3b82f6; /* Nền xanh khi active */
+        }
+        .toggle-label {
+             /* Đây là cái rãnh trượt */
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-200 dark:bg-gray-900 flex justify-center items-center min-h-screen p-4">
+
+    <!-- Khung điện thoại giả lập -->
+    <!-- THAY ĐỔI: Tăng 'max-w-sm' -> 'max-w-md' (to hơn) -->
+    <!-- THAY ĐỔI: Đổi 'max-h-[120vh]' -> 'max-h-[95vh]' (dài hơn và vừa vặn màn hình) -->
+    <div class="w-full max-w-md h-[900px] bg-white dark:bg-gray-950 shadow-2xl rounded-3xl overflow-hidden flex flex-col relative">
+
+
+        <!-- Khu vực nội dung chính (có thể cuộn) -->
+        <div id="main-content" class="flex-1 overflow-y-auto no-scrollbar p-5">
+
+            <!-- Tab 1: Điều khiển (Mặc định hiển thị) -->
+            <div id="tab-controls" class="tab-content">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Điều khiển</h1>
+                
+                <!-- Danh sách thiết bị -->
+                <div class="space-y-4">
+                    <!-- Thiết bị 1: Đèn phòng khách -->
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-xl flex justify-between items-center shadow">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="lightbulb" class="w-7 h-7 text-yellow-400"></i>
+                            <span class="text-xl font-medium text-gray-900 dark:text-gray-100">Đèn Phòng Khách</span>
+                        </div>
+                        <!-- Công tắc (ĐÃ LÀM TO HƠN) -->
+                        <div class="relative inline-block w-14 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle-light-living" id="toggle-light-living" data-device="light_living"
+                                   class="toggle-checkbox absolute block w-7 h-7 rounded-full bg-white dark:bg-gray-400 border-4 border-gray-300 dark:border-gray-600 appearance-none cursor-pointer"
+                                   onclick="handleToggle(this)"/>
+                            <label for="toggle-light-living" 
+                                   class="toggle-label block overflow-hidden h-7 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
+                        </div>
+                    </div>
+
+                    <!-- Thiết bị 2: Quạt -->
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-xl flex justify-between items-center shadow">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="wind" class="w-7 h-7 text-blue-400"></i>
+                            <span class="text-xl font-medium text-gray-900 dark:text-gray-100">Quạt trần</span>
+                        </div>
+                        <!-- Công tắc (ĐÃ LÀM TO HƠN) -->
+                        <div class="relative inline-block w-14 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle-fan" id="toggle-fan" data-device="fan_ceiling"
+                                   class="toggle-checkbox absolute block w-7 h-7 rounded-full bg-white dark:bg-gray-400 border-4 border-gray-300 dark:border-gray-600 appearance-none cursor-pointer"
+                                   onclick="handleToggle(this)"/>
+                            <label for="toggle-fan" 
+                                   class="toggle-label block overflow-hidden h-7 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
+                        </div>
+                    </div>
+
+                    <!-- Thiết bị 3: Đèn phòng ngủ -->
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-xl flex justify-between items-center shadow">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="lamp" class="w-7 h-7 text-purple-400"></i>
+                            <span class="text-xl font-medium text-gray-900 dark:text-gray-100">Đèn Phòng Ngủ</span>
+                        </div>
+                        <!-- Công tắc (ĐÃ LÀM TO HƠN) -->
+                        <div class="relative inline-block w-14 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle-light-bedroom" id="toggle-light-bedroom" data-device="light_bedroom"
+                                   class="toggle-checkbox absolute block w-7 h-7 rounded-full bg-white dark:bg-gray-400 border-4 border-gray-300 dark:border-gray-600 appearance-none cursor-pointer"
+                                   onclick="handleToggle(this)"/>
+                            <label for="toggle-light-bedroom" 
+                                   class="toggle-label block overflow-hidden h-7 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Camera (Ẩn) -->
+            <div id="tab-camera" class="tab-content hidden">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Camera An Ninh</h1>
+                <div class="bg-gray-900 rounded-xl overflow-hidden aspect-video flex justify-center items-center">
+                    <!-- Placeholder cho camera -->
+                    <div id="camera-placeholder" class="text-gray-600">
+                        <i data-lucide="video-off" class="w-24 h-24"></i>
+                        <p class="text-center mt-2">Chưa có IP máy chủ</p>
+                    </div>
+                    <!-- Stream video sẽ được tải vào đây -->
+                    <img id="camera-stream" class="hidden w-full h-full object-cover" src="" alt="Camera Stream">
+                </div>
+                <button id="reload-stream-btn" class="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 hidden">
+                    Tải lại Stream
+                </button>
+            </div>
+
+            <!-- Tab 3: Cài đặt (Ẩn) -->
+            <div id="tab-settings" class="tab-content hidden">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Cài đặt</h1>
+                <div class="space-y-4">
+                    <div>
+                        <label for="ip-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Địa chỉ IP Máy chủ / ESP32
+                        </label>
+                        <input type="text" id="ip-input" placeholder="Ví dụ: 192.168.1.100"
+                               class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button id="save-ip-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
+                        Lưu địa chỉ IP
+                    </button>
+                    <p id="save-status" class="text-green-500 text-center"></p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Thanh điều hướng dưới cùng -->
+        <div class="h-20 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around items-center">
+            <!-- Nút Tab 1: Điều khiển -->
+            <button class="nav-btn p-3 rounded-lg text-blue-600 dark:text-blue-500 bg-blue-100 dark:bg-gray-800" data-tab="controls">
+                <i data-lucide="sliders-horizontal" class="w-7 h-7"></i>
+            </button>
+            <!-- Nút Tab 2: Camera -->
+            <button class="nav-btn p-3 rounded-lg text-gray-500 dark:text-gray-400" data-tab="camera">
+                <i data-lucide="video" class="w-7 h-7"></i>
+            </button>
+            <!-- Nút Tab 3: Cài đặt -->
+            <button class="nav-btn p-3 rounded-lg text-gray-500 dark:text-gray-400" data-tab="settings">
+                <i data-lucide="settings" class="w-7 h-7"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        
+        // Lấy các phần tử DOM
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const ipInput = document.getElementById('ip-input');
+        const saveIpBtn = document.getElementById('save-ip-btn');
+        const saveStatus = document.getElementById('save-status');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        const cameraStream = document.getElementById('camera-stream');
+        const reloadStreamBtn = document.getElementById('reload-stream-btn');
+
+        let serverIp = localStorage.getItem('serverIp') || '';
+
+        // Hàm hiển thị Tab
+        function showTab(tabName) {
+            tabContents.forEach(tab => {
+                if (tab.id === `tab-${tabName}`) {
+                    tab.classList.remove('hidden');
+                } else {
+                    tab.classList.add('hidden');
+                }
+            });
+
+            // Cập nhật giao diện nút nav
+            navButtons.forEach(btn => {
+                if (btn.dataset.tab === tabName) {
+                    btn.classList.add('text-blue-600', 'dark:text-blue-500', 'bg-blue-100', 'dark:bg-gray-800');
+                    btn.classList.remove('text-gray-500', 'dark:text-gray-400');
+                } else {
+                    btn.classList.remove('text-blue-600', 'dark:text-blue-500', 'bg-blue-100', 'dark:bg-gray-800');
+                    btn.classList.add('text-gray-500', 'dark:text-gray-400');
+                }
+            });
+
+            // Xử lý logic riêng cho tab camera
+            if (tabName === 'camera') {
+                updateCameraStream();
+            }
+            
+            // Cập nhật icon sau khi tab thay đổi (đặc biệt quan trọng cho camera)
+            // Chúng ta gọi nó ở đây để đảm bảo các icon mới (như alert-triangle) được vẽ
+            try {
+                if (lucide) {
+                    lucide.createIcons();
+                }
+            } catch (e) {
+                console.error("Lỗi khi tạo icon lúc chuyển tab: ", e);
+            }
+        }
+
+        // Hàm cập nhật luồng camera
+        function updateCameraStream() {
+            if (serverIp) {
+                // Giả định ESP32-CAM stream tại port 81 và path /stream
+                const streamUrl = `http://${serverIp}:5000/stream`;
+                cameraStream.src = streamUrl;
+                cameraStream.classList.remove('hidden');
+                cameraPlaceholder.classList.add('hidden');
+                reloadStreamBtn.classList.remove('hidden');
+
+                // Xử lý lỗi nếu không tải được stream
+                cameraStream.onerror = () => {
+                    cameraStream.classList.add('hidden');
+                    cameraPlaceholder.classList.remove('hidden');
+                    cameraPlaceholder.innerHTML = `
+                        <i data-lucide="alert-triangle" class="w-24 h-24 text-red-500"></i>
+                        <p class="text-center mt-2 text-red-500">Không thể kết nối stream</p>
+                    `;
+                    // Phải gọi lại createIcons sau khi thêm HTML mới
+                    if (lucide) lucide.createIcons();
+                };
+            } else {
+                cameraStream.classList.add('hidden');
+                cameraPlaceholder.classList.remove('hidden');
+                reloadStreamBtn.classList.add('hidden');
+                cameraPlaceholder.innerHTML = `
+                    <i data-lucide="video-off" class="w-24 h-24"></i>
+                    <p class="text-center mt-2">Chưa có IP máy chủ</p>
+                `;
+                // Phải gọi lại createIcons sau khi thêm HTML mới
+                if (lucide) lucide.createIcons();
+            }
+        }
+
+        // Gắn sự kiện click cho các nút nav
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                showTab(btn.dataset.tab);
+            });
+        });
+
+        // Xử lý lưu IP
+        saveIpBtn.addEventListener('click', () => {
+            serverIp = ipInput.value.trim();
+            if (serverIp) {
+                localStorage.setItem('serverIp', serverIp);
+                saveStatus.textContent = 'Đã lưu!';
+                saveStatus.classList.remove('text-red-500');
+                saveStatus.classList.add('text-green-500');
+                setTimeout(() => saveStatus.textContent = '', 2000);
+            } else {
+                saveStatus.textContent = 'Vui lòng nhập IP!';
+                saveStatus.classList.add('text-red-500');
+                saveStatus.classList.remove('text-green-500');
+                setTimeout(() => {
+                    saveStatus.textContent = '';
+                }, 2000);
+            }
+        });
+
+        // Tải IP đã lưu khi mở app
+        // THAY ĐỔI: Dùng 'load' thay vì 'DOMContentLoaded'
+        // 'load' đảm bảo TẤT CẢ tài nguyên (bao gồm cả script lucide.js) đã tải xong
+        window.addEventListener('load', () => {
+            
+            // THAY ĐỔI: Chuyển lệnh khởi tạo icon vào đây.
+            // Điều này đảm bảo 'lucide.js' đã tải xong trước khi được gọi.
+            try {
+                lucide.createIcons();
+            } catch (e) {
+                console.error("Lỗi khi khởi tạo Lucide icons:", e);
+            }
+
+            if (serverIp) {
+                ipInput.value = serverIp;
+            }
+            // Hiển thị tab đầu tiên
+            showTab('controls');
+        });
+
+        // Tải lại stream
+        reloadStreamBtn.addEventListener('click', updateCameraStream);
+
+        // Hàm xử lý khi bật/tắt công tắc
+        function handleToggle(toggleElement) {
+            // Kiểm tra IP trước khi làm bất cứ điều gì
+            serverIp = localStorage.getItem('serverIp') || ''; // Lấy IP mới nhất
+            if (!serverIp) {
+                // Dùng một thông báo tùy chỉnh thay vì alert()
+                saveStatus.textContent = 'Vui lòng nhập IP ở tab Cài đặt!';
+                saveStatus.classList.add('text-red-500');
+                saveStatus.classList.remove('text-green-500');
+                setTimeout(() => {
+                    saveStatus.textContent = '';
+                }, 3000);
+
+                showTab('settings'); // Tự động chuyển đến tab cài đặt
+                toggleElement.checked = !toggleElement.checked; // Hoàn lại trạng thái
+                return;
+            }
+
+            const deviceId = toggleElement.dataset.device;
+            const status = toggleElement.checked ? 'on' : 'off';
+
+            // Giả định bạn sẽ gửi lệnh qua HTTP GET
+            // Ví dụ: http://192.168.1.100/control?device=light_living&status=on
+            const url = `http://${serverIp}/control?device=${deviceId}&status=${status}`;
+
+            console.log(`Đang gửi lệnh: ${url}`);
+            
+            // Gửi yêu cầu tới server
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Lỗi mạng');
+                    }
+                    return response.text(); // Hoặc .json() nếu server trả về JSON
+                })
+                .then(data => {
+                    console.log(`Server phản hồi: ${data}`);
+                    // Thêm thông báo thành công (ví dụ: toast) nếu muốn
+                })
+                .catch(error => {
+                    console.error(`Lỗi khi gửi lệnh: ${error}`);
+                    // Thông báo lỗi tinh tế hơn
+                    saveStatus.textContent = `Lỗi: Không thể gửi lệnh.`;
+                    saveStatus.classList.add('text-red-500');
+                    saveStatus.classList.remove('text-green-500');
+                    setTimeout(() => saveStatus.textContent = '', 3000);
+                    
+                    // Nếu lỗi, hoàn lại trạng thái công tắc
+                    toggleElement.checked = !toggleElement.checked;
+                });
+        }
+        if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered', reg))
+            .catch(err => console.error('SW registration failed', err));
+        });
+        }
+
+    </script>
+</body>
+</html>
+
